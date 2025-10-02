@@ -1,0 +1,81 @@
+---
+alwaysApply: false
+---
+
+# Relayer & proof formats (implementation rules)
+
+
+Leaf format (canonical JSON -> keccak256 hash) for provider-signed usage record:
+{
+"provider": "0x...",
+"nodeId": "node-123",
+"windowStart": 169xxxx,
+"windowEnd": 169xxxx,
+"unitsConsumed": 12345,
+"rateId": "rate-std-1",
+"nonce": "uuid-or-counter"
+}
+
+
+- Provider signs keccak256(JSON) using EIP-191 / eth_sign (or EIP-712 if you prefer). Save signature with the leaf.
+- The relayer collects leaves for a provider in the time window, builds a Merkle tree (sorted leaves by timestamp), computes merkleRoot.
+
+
+Aggregate payload (signed by relayer):
+{
+"provider": "0x...",
+"windowStart": 169xxxx,
+"windowEnd": 169xxxx,
+"merkleRoot": "0x...",
+"totalUsage": 54321
+}
+
+
+Relayer signs keccak256(abi.encodePacked(...)) and calls BillingManager.submitUsageAnchor(provider, windowStart, windowEnd, merkleRoot, totalUsage).
+
+
+Dispute path:
+- Anyone can submit a merkle leaf + merkle proof + verifier of providerSig to the contract (external function). If leaf verification fails (mismatch), dispute logic triggers.
+
+
+Implementation tips for Cursor:
+- Provide Node.js pseudocode: verify provider sigs, build merkle tree, store raw leaves to /data or IPFS, submit on-chain transactions via ethers.js.
+- Make batching interval configurable (default 60s or 1m for demo). For hackathon use 30s–60s windows.# Relayer & proof formats (implementation rules)
+
+
+Leaf format (canonical JSON -> keccak256 hash) for provider-signed usage record:
+{
+"provider": "0x...",
+"nodeId": "node-123",
+"windowStart": 169xxxx,
+"windowEnd": 169xxxx,
+"unitsConsumed": 12345,
+"rateId": "rate-std-1",
+"nonce": "uuid-or-counter"
+}
+
+
+- Provider signs keccak256(JSON) using EIP-191 / eth_sign (or EIP-712 if you prefer). Save signature with the leaf.
+- The relayer collects leaves for a provider in the time window, builds a Merkle tree (sorted leaves by timestamp), computes merkleRoot.
+
+
+Aggregate payload (signed by relayer):
+{
+"provider": "0x...",
+"windowStart": 169xxxx,
+"windowEnd": 169xxxx,
+"merkleRoot": "0x...",
+"totalUsage": 54321
+}
+
+
+Relayer signs keccak256(abi.encodePacked(...)) and calls BillingManager.submitUsageAnchor(provider, windowStart, windowEnd, merkleRoot, totalUsage).
+
+
+Dispute path:
+- Anyone can submit a merkle leaf + merkle proof + verifier of providerSig to the contract (external function). If leaf verification fails (mismatch), dispute logic triggers.
+
+
+Implementation tips for Cursor:
+- Provide Node.js pseudocode: verify provider sigs, build merkle tree, store raw leaves to /data or IPFS, submit on-chain transactions via ethers.js.
+- Make batching interval configurable (default 60s or 1m for demo). For hackathon use 30s–60s windows.

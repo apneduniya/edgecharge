@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Build artifacts
+artifacts/
+cache/
+
+# Hardhat network files
+hardhat-local-network.json # Or any custom local network file name
+
+# Test reports
+coverage/
+coverage.json
+
+# IDE specific files
+.vscode/ # Visual Studio Code
+.idea/ # IntelliJ IDEA
+
+# OS generated files
+.DS_Store
+Thumbs.db

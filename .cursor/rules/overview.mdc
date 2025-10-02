@@ -1,0 +1,27 @@
+---
+alwaysApply: false
+---
+
+# Overview — EdgeCharge
+
+
+Purpose: provide enterprise billing, invoicing and escrow for DePIN providers. Keep on-chain surface area minimal - anchors and key events only. Off-chain components (relayer, invoicing engine, storage) handle heavy lifting.
+
+
+Core components:
+- Provider agent / SDK: signs per-window usage records.
+- Relayer / aggregator: verifies provider signatures, constructs Merkle root over leaves, signs aggregate, calls BillingManager.submitUsageAnchor(...).
+- BillingManager (Solidity): stores anchors, emits events, stores invoice anchors, provides minimal dispute flags.
+- Invoicing engine: listens for UsageAnchored events, computes cost via provider rate-cards, generates PDF/CSV invoice, anchors invoice hash via BillingManager.anchorInvoice(...).
+- Enterprise dashboard & provider dashboard: top-up escrow (demo), view usage, download invoice, open dispute.
+
+
+Design principles:
+- **Least privilege on-chain**: relayer is authorized; full proof verification done during disputes only.
+- **Auditability**: raw signed leaves stored off-chain (IPFS / simple HTTP server) and referenced by merkle root on-chain.
+- **Demo-first**: single relayer + 1 provider + 1 enterprise is enough to show full loop.
+
+
+Security notes:
+- Use ECDSA signatures (eth_sign or EIP-712) for provider leaves and relayer aggregation signatures.
+- Include nonces & timestamps to avoid replay.

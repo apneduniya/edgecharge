@@ -1,0 +1,21 @@
+---
+alwaysApply: false
+---
+
+# Demo runbook (2–3 minute script + commands)
+
+
+Prereqs (local): Node.js, Hardhat, simple wallet (metamask or private key), Cursor open if you want AI help.
+
+
+1) Deploy BillingManager to U2U testnet (or local Hardhat). Save address.
+2) Start provider simulator: `node provider-sim.js --provider 0xABC --window 60s` (emits signed leaves to ./data/provider-0xABC/)
+3) Start relayer: `node relayer.js --provider 0xABC --window 60s --contract <BillingManager>`
+4) Open Dashboard: register enterprise, top-up escrow (simulate ERC20 transfer), register provider.
+5) Relayer will submit anchors every window. Show U2U tx explorer link.
+6) Invoicing engine picks anchor -> generates invoice -> calls `anchorInvoice(invoiceId, invoiceHash)` (show tx).
+7) Demo payment: use escrow to mark invoice paid -> provider withdraws (show tx).
+8) Force a failure: flip provider sim to offline -> relayer submits anchor with low usage -> invoice shows discrepancy -> open dispute -> show dispute flag on-chain.
+
+
+Talk track for judges: emphasise low on-chain surface, tamper-proof anchors, enterprise-ready invoices + audit trail on U2U.

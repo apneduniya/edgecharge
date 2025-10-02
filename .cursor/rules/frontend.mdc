@@ -1,0 +1,45 @@
+---
+alwaysApply: false
+---
+
+# Frontend — screens & API contracts
+
+
+Pages to implement (MVP):
+1. Enterprise Dashboard (create org, top-up escrow, projects, budgets, usage view)
+2. Provider Dashboard (register provider wallet, show recent anchors, pending payouts)
+3. Admin/Relayer Console (submit manual anchor, anchor invoice, resolve dispute)
+4. Invoice viewer (download PDF / CSV)
+
+
+Minimal API endpoints (server for relayer/invoicing):
+- POST /api/relayer/submit-usage -> relayer receives provider leaves and calls on-chain function.
+- GET /api/anchors/:provider -> fetch anchors & details.
+- GET /api/invoices/:invoiceId -> fetch invoice PDF or JSON.
+- POST /api/invoices/:invoiceId/pay -> simulate payment or push ERC20 tx in demo.
+
+
+UX rules for Cursor:
+- Make actions idempotent (retry-safe).
+- Show on-chain tx links (U2U testnet explorer) for anchors & invoice anchors.
+- For demo, include a "simulate failure" toggle on provider dashboard to force a dispute scenario.# Frontend — screens & API contracts
+
+
+Pages to implement (MVP):
+1. Enterprise Dashboard (create org, top-up escrow, projects, budgets, usage view)
+2. Provider Dashboard (register provider wallet, show recent anchors, pending payouts)
+3. Admin/Relayer Console (submit manual anchor, anchor invoice, resolve dispute)
+4. Invoice viewer (download PDF / CSV)
+
+
+Minimal API endpoints (server for relayer/invoicing):
+- POST /api/relayer/submit-usage -> relayer receives provider leaves and calls on-chain function.
+- GET /api/anchors/:provider -> fetch anchors & details.
+- GET /api/invoices/:invoiceId -> fetch invoice PDF or JSON.
+- POST /api/invoices/:invoiceId/pay -> simulate payment or push ERC20 tx in demo.
+
+
+UX rules for Cursor:
+- Make actions idempotent (retry-safe).
+- Show on-chain tx links (U2U testnet explorer) for anchors & invoice anchors.
+- For demo, include a "simulate failure" toggle on provider dashboard to force a dispute scenario.

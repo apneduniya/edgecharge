@@ -1,0 +1,26 @@
+---
+globs: contracts/*
+alwaysApply: false
+---
+# Contracts — EdgeCharge rules
+
+
+1) Use OpenZeppelin base contracts (Ownable, AccessControl) only where necessary.
+2) Keep storage minimal: anchor metadata + invoice records + relayer registry.
+3) Important events to emit: UsageAnchored(anchorId, provider, windowStart, windowEnd, totalUsage), InvoiceAnchored(invoiceId, enterprise, provider, amount), InvoicePaid(invoiceId).
+4) Minimal function set for MVP:
+- submitUsageAnchor(address provider, uint256 windowStart, uint256 windowEnd, bytes32 merkleRoot, uint256 totalUsage) external onlyRelayer returns (bytes32 anchorId)
+- anchorInvoice(uint256 invoiceId, bytes32 invoiceHash) external onlyRelayer
+- markInvoicePaid(uint256 invoiceId) external onlyRelayer
+- openDispute(bytes32 anchorId, string reason) external
+5) Access control: authorizedRelayer mapping. For MVP it's set by contract deployer. Later: multisig or staking.
+6) Gas & optimization: store small values on-chain; no heavy loops. Use keccak256 for anchor IDs.
+7) Testing rules: include tests for honest flow, dishonest relayer (fake aggregate), dispute proof verification (provide merkle leaf & proof) and invoice payment flow.
+
+
+Security checklist for Cursor:
+- Verify relayer only via ecrecover(aggSig) or authorized address mapping.
+- Do not verify entire Merkle tree on-chain at anchor time. Implement on-chain leaf verification *only* for dispute paths.
+
+
+When asked to generate Solidity code, produce inline NatSpec comments and small unit tests using Hardhat.
