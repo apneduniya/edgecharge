@@ -1,5 +1,5 @@
 ---
-globs: contracts/*
+globs: packages/contracts/*
 alwaysApply: false
 ---
 # Contracts — EdgeCharge rules

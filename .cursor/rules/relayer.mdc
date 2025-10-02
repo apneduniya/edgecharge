@@ -1,7 +1,7 @@
 ---
+globs: packages/relayer/*
 alwaysApply: false
 ---
-
 # Relayer & proof formats (implementation rules)
 
 
