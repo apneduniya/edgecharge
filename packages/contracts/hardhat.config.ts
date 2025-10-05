@@ -40,7 +40,7 @@ const config: HardhatUserConfig = {
       type: "http",
       chainId: 2484,
       url: 'https://rpc-nebulas-testnet.u2u.xyz',
-      accounts: [configVariable("NEBULAS_PRIVATE_KEY")], // This should be a private key of an account with funds on the Nebulas testnet
+      accounts: [configVariable("OWNER_PRIVATE_KEY")], // This should be a private key of an account with funds on the Nebulas testnet
     }
   },
 };
