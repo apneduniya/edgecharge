@@ -133,65 +133,100 @@ describe("EdgeCharge", async function () {
   });
 
   describe("Invoice Management", async function () {
-    const invoiceId = 1n; // 1n is a bigint literal = 1
-    const invoiceHashPromise = Promise.resolve(
-      keccak256(toBytes("test invoice")), // test invoice is a string = "test invoice"
-    );
+    it("Should create invoice successfully", async function () {
+      const invoiceHash = keccak256(toBytes("test invoice"));
 
-    it("Should anchor invoice successfully", async function () {
-      const invoiceHash = await invoiceHashPromise;
-      await edgeCharge.write.anchorInvoice([invoiceId, invoiceHash], {
-        account: relayer.account,
-      });
-
-      const invoice = await edgeCharge.read.getInvoice([invoiceId]);
-      assert.equal(invoice.invoiceHash, invoiceHash);
-      assert.equal(invoice.provider.toLowerCase(), relayer.account.address.toLowerCase());
-      assert.equal(invoice.paid, false);
-      assert.equal(invoice.exists, true);
-    });
-
-    it("Should mark invoice as paid", async function () {
-      const invoiceHash = await invoiceHashPromise;
-      await edgeCharge.write.anchorInvoice([invoiceId, invoiceHash], {
-        account: relayer.account,
-      });
-
-      await edgeCharge.write.markInvoicePaid([invoiceId], {
-        account: relayer.account,
-      });
+      await edgeCharge.write.createInvoice([
+        enterprise.account.address,
+        provider.account.address,
+        1000n,
+        invoiceHash,
+      ], { account: relayer.account });
 
       const events = await publicClient.getContractEvents({
         address: edgeCharge.address,
         abi: edgeCharge.abi,
-        eventName: "InvoicePaid",
+        eventName: "InvoiceCreated",
         fromBlock: deploymentBlockNumber,
         strict: true,
       });
       assert.ok(events.length > 0);
+      const { args } = events[events.length - 1] as any;
+      const createdInvoiceId = args.invoiceId as bigint;
 
-      const invoice = await edgeCharge.read.getInvoice([invoiceId]);
-      assert.equal(invoice.paid, true);
+      const invoice = await edgeCharge.read.getInvoice([createdInvoiceId]);
+      assert.equal(invoice.invoiceHash, invoiceHash);
+      assert.equal(invoice.enterprise.toLowerCase(), enterprise.account.address.toLowerCase());
+      assert.equal(invoice.provider.toLowerCase(), provider.account.address.toLowerCase());
+      assert.equal(invoice.amount, 1000n);
+      assert.equal(invoice.paid, false);
+      assert.equal(invoice.exists, true);
     });
 
-    it("Should reject invalid invoice operations", async function () {
-      const invoiceHash = await invoiceHashPromise;
+    it("Should reject invalid invoice creation and payment without escrow", async function () {
+      const validHash = keccak256(toBytes("invoice"));
+
       await assert.rejects(
-        edgeCharge.write.anchorInvoice([0n, invoiceHash], { account: relayer.account }),
-        /Invalid invoice ID/i,
+        edgeCharge.write.createInvoice([
+          "0x0000000000000000000000000000000000000000",
+          provider.account.address,
+          1n,
+          validHash,
+        ], { account: relayer.account }),
+        /invalid enterprise/i,
       );
 
       await assert.rejects(
-        edgeCharge.write.anchorInvoice([
+        edgeCharge.write.createInvoice([
+          enterprise.account.address,
+          "0x0000000000000000000000000000000000000000",
+          1n,
+          validHash,
+        ], { account: relayer.account }),
+        /invalid provider/i,
+      );
+
+      await assert.rejects(
+        edgeCharge.write.createInvoice([
+          enterprise.account.address,
+          provider.account.address,
+          0n,
+          validHash,
+        ], { account: relayer.account }),
+        /amount must be > 0/i,
+      );
+
+      await assert.rejects(
+        edgeCharge.write.createInvoice([
+          enterprise.account.address,
+          provider.account.address,
           1n,
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         ], { account: relayer.account }),
-        /Invalid invoice hash/i,
+        /invalid invoice hash/i,
       );
 
+      // Create a valid invoice, then attempt to mark as paid without escrow
+      await edgeCharge.write.createInvoice([
+        enterprise.account.address,
+        provider.account.address,
+        5n,
+        validHash,
+      ], { account: relayer.account });
+
+      const events = await publicClient.getContractEvents({
+        address: edgeCharge.address,
+        abi: edgeCharge.abi,
+        eventName: "InvoiceCreated",
+        fromBlock: deploymentBlockNumber,
+        strict: true,
+      });
+      const { args } = events[events.length - 1] as any;
+      const createdInvoiceId = args.invoiceId as bigint;
+
       await assert.rejects(
-        edgeCharge.write.markInvoicePaid([invoiceId], { account: relayer.account }),
-        /Invoice does not exist/i,
+        edgeCharge.write.markInvoicePaid([createdInvoiceId], { account: relayer.account }),
+        /insufficient escrow/i,
       );
     });
   });
@@ -244,7 +279,7 @@ describe("EdgeCharge", async function () {
         edgeCharge.write.openDispute([anchorId, ""], {
           account: otherAccount.account,
         }),
-        /Dispute reason required/i,
+        /reason required/i,
       );
 
       await edgeCharge.write.openDispute([anchorId, "Invalid usage data"], {
